@@ -1,0 +1,40 @@
+<?php
+session_start();
+if ($_SERVER['REQUEST_METHOD'] == 'POST')
+{
+    $username = $_POST["attuser"];
+    $password = $_POST["attpwd"];
+    $first = $_POST["first"];
+    $second = $_POST["second"];
+    $sum = $_POST["sum"];
+
+    if($sum==$first+$second){
+      require('../class/fetchdb.php');
+      error_reporting(E_ERROR | E_PARSE);
+      $fetchdata=new fetch();
+      $cientip=$fetchdata->get_client_ip();
+      $stmt=$fetchdata->fetch_data("SELECT * FROM HRD_LOGIN where USER_NAME='$username'");
+      $res=oci_fetch_assoc($stmt);
+      if ((oci_num_rows($stmt) == 0) || ($res['PASSWORD'] != $password))
+      {
+        	echo "<script language=javascript>alert('Invalid Login-Id or Password');history.back();</script>";
+          exit();
+      }else{
+        if($res['ACTIVE_FLAG'] != 'YE'){
+          echo "<script language=javascript>alert('Account not active');history.back();</script>";
+          exit();
+        }else{
+        $stmt=$fetchdata->fetch_data("insert into HRD_USER_LOG(USERNAME,MODULE,ACTION,CREATE_DATE,USERIP)values('$username','LOGIN','LOGIN',SYSDATE,'$cientip')");
+        $_SESSION['LOGIN_ID']=$res['LOGIN_ID'];
+        $_SESSION['USER_NAME']=$res['USER_NAME'];
+		$_SESSION['USER_NAME']=$res['USER_NAME'];
+        echo "<script>location.href='../Welcome.php'</script>";
+      }
+    }
+    }else{
+      echo"<script>alert('Invalid Captcha');history.back();</script>";
+    }
+}else{
+  echo"<script>location.href='com/logout.php';</script>";
+}
+?>
